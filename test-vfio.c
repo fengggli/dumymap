@@ -7,6 +7,7 @@
 
 #include <errno.h>
 #include <string.h>
+#include <assert.h>
 
 #define PINF(f_, ...) printf((f_"\n"), ##__VA_ARGS__)
 #define PERR(f_, ...) fprintf(stderr, (f_"\n"), ##__VA_ARGS__)
@@ -68,21 +69,34 @@ int main(){
 
 	/* Get addition IOMMU info */
 	ioctl(container, VFIO_IOMMU_GET_INFO, &iommu_info);
+  size_t map_size = 1024*1024;
 
 	/* Allocate some space and setup a DMA mapping */
-#if 1
+#if 0
   void * target_addr = ((void *) 0x900000000);
-	dma_map.vaddr = mmap(target_addr, 1024 * 1024, PROT_READ | PROT_WRITE,
+	dma_map.vaddr = mmap(target_addr, map_size, PROT_READ | PROT_WRITE,
 			     MAP_PRIVATE | MAP_ANONYMOUS| MAP_FIXED, 0, 0);
-	dma_map.size = 1024 * 1024;
+	dma_map.size = map_size;
 	dma_map.iova = 0x900000000; /* 1MB starting at 0x900000000 from device view */
 
 
 #else
-	dma_map.vaddr = mmap(0, 1024 * 1024, PROT_READ | PROT_WRITE,
-			     MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
+    int fd = open("/dev/dummymap", O_RDWR, 0666);
+    assert(fd != -1);
+    void * target_addr = ((void*)0x900000000);
+    void * ptr = mmap(target_addr,
+                        map_size,
+                        PROT_READ | PROT_WRITE,
+                        // MAP_PRIVATE | MAP_FIXED, // | MAP_HUGETLB, // | MAP_HUGE_2MB,
+                        MAP_SHARED | MAP_FIXED ,
+                        fd,
+                        0);
+    assert(ptr != (void*) -1);
+    memset(ptr, 0xff, map_size);
+
+
 	dma_map.size = 1024 * 1024;
-	dma_map.iova = 0; /* 1MB starting at 0x0 from device view */
+	dma_map.iova = 0x900000000; /* 1MB starting at 0x0 from device view */
 #endif
 	dma_map.flags = VFIO_DMA_MAP_FLAG_READ | VFIO_DMA_MAP_FLAG_WRITE;
 
