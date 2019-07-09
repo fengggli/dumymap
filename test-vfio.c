@@ -41,7 +41,7 @@ int main(){
 	/* Open the group */
 	group = open(VFIO_GROUP_PATH, O_RDWR);
   if(group <0){
-    PERR("open group path failed at %s", VFIO_GROUP_PATH);
+    PERR("open group path failed at %s (change VFIO_GROUP_PATH)", VFIO_GROUP_PATH);
     return -1;
   }
 
@@ -73,9 +73,9 @@ int main(){
 #if 1
   void * target_addr = ((void *) 0x900000000);
 	dma_map.vaddr = mmap(target_addr, 1024 * 1024, PROT_READ | PROT_WRITE,
-			     MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
+			     MAP_PRIVATE | MAP_ANONYMOUS| MAP_FIXED, 0, 0);
 	dma_map.size = 1024 * 1024;
-	dma_map.iova = 0x900000000; /* 1MB starting at 0x0 from device view */
+	dma_map.iova = 0x900000000; /* 1MB starting at 0x900000000 from device view */
 
 
 #else
@@ -97,7 +97,7 @@ int main(){
 	/* Get a file descriptor for the device */
 	device = ioctl(group, VFIO_GROUP_GET_DEVICE_FD, DEVICE_PCI);
   if(device < 0){
-      PERR("IOCTRL with errno during get_device_fd: %s", strerror(errno));
+      PERR("IOCTRL with errno during get_device_fd (Change DEVICE_PCI): %s", strerror(errno));
       return -1;
   }
 
