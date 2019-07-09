@@ -8,12 +8,12 @@
 #include <errno.h>
 #include <string.h>
 
-#define PINF(f_, ...) printf((f_), ##__VA_ARGS__)
-#define PERR(f_, ...) fprintf(stderr, (f_), ##__VA_ARGS__)
+#define PINF(f_, ...) printf((f_"\n"), ##__VA_ARGS__)
+#define PERR(f_, ...) fprintf(stderr, (f_"\n"), ##__VA_ARGS__)
 
 
-#define VFIO_GROUP_PATH ("/dev/vfio/16")
-#define DEVICE_PCI ("0000:20:00.0")
+#define VFIO_GROUP_PATH ("/dev/vfio/14")
+#define DEVICE_PCI ("0000:11:00.0")
 
 int main(){
 	int container, group, device, i;
@@ -97,13 +97,13 @@ int main(){
 	/* Get a file descriptor for the device */
 	device = ioctl(group, VFIO_GROUP_GET_DEVICE_FD, DEVICE_PCI);
   if(device < 0){
-      PERR("IOCTRL with errno %s", strerror(errno));
+      PERR("IOCTRL with errno during get_device_fd: %s", strerror(errno));
       return -1;
   }
 
 	/* Test and setup the device */
 	if(0 > ioctl(device, VFIO_DEVICE_GET_INFO, &device_info)){
-    PERR("IOCTRL with errno %s", strerror(errno));
+    PERR("IOCTRL with errno during get_info: %s", strerror(errno));
     return -1;
   }
 

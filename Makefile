@@ -16,7 +16,5 @@ clean:
 
 client:
 	gcc -O2 -o test-vfio ./test-vfio.c
-	#g -g -std=c++11 -DCONFIG_DEBUG -O2 -o testcli ./testcli.cc -I$(COMANCHE_HOME)/src/lib/common/include/
-
 
 .PHONY: client
