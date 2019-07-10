@@ -83,6 +83,7 @@ static int fop_mmap(struct file *file, struct vm_area_struct *vma) {
   if (!dma_virtaddr) {
     return -ENOMEM;
   }
+  pr_info("dummy map succeed in memory allocation");
   vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
 
   if (remap_pfn_range(vma, vma->vm_start,
@@ -92,6 +93,7 @@ static int fop_mmap(struct file *file, struct vm_area_struct *vma) {
 
   vma->vm_ops = &dummymap_fops;
   vm_open(vma);
+  pr_info("dummy map succeed");
   return 0;
 }
 
