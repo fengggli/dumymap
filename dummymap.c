@@ -75,19 +75,18 @@ static struct vm_operations_struct dummymap_fops = {
 static int fop_mmap(struct file *file, struct vm_area_struct *vma) {
   size_t map_size;
   void *dma_virtaddr;
-  dma_addr_t dma_handle;
+  // dma_addr_t dma_handle;
   map_size = vma->vm_end - vma->vm_start;
   printk(KERN_INFO "dummy map mmap called!\n");
 
-  dma_virtaddr = dma_alloc_coherent(dummymap_dev.this_device, map_size,
-                                    &dma_handle, GFP_KERNEL);
+  /*dma_virtaddr = dma_alloc_coherent(dummymap_dev.this_device, map_size,*/
+                                    /*&dma_handle, GFP_KERNEL);*/
 
-  dma_virtaddr = kmalloc()
+  dma_virtaddr = kmalloc(map_size, GFP_KERNEL);
   if (!dma_virtaddr) {
     printk(KERN_ERR "dummy map failed in  memory allocation");
     return -ENOMEM;
   }
-  printk(KERN_INFO "dummy map succeed in memory allocation");
   vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
 
   if (remap_pfn_range(vma, vma->vm_start,
