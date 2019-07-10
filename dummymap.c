@@ -11,6 +11,7 @@
 #include <linux/fs.h>
 #include <linux/slab.h>
 #include <linux/uaccess.h>
+#include <linux/dma-mapping.h>
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4,13,0)
 #include <asm/cacheflush.h>
@@ -78,14 +79,25 @@ static struct vm_operations_struct dummymap_fops = {
 
 static int fop_mmap(struct file *file, struct vm_area_struct *vma)
 {
-    if (remap_pfn_range(vma, vma->vm_start, vma->vm_pgoff,
-                vma->vm_end - vma->vm_start,
-                vma->vm_page_prot))
-        return -EAGAIN;
+  size_t map_size;
+  void* dma_virtaddr;
+  dma_addr_t dma_handle;
+  map_size = vma->vm_end - vma->vm_start;
 
-    vma->vm_ops = &dummymap_fops;
-    vm_open(vma);
-    return 0;
+  dma_virtaddr = dma_alloc_coherent(dummymap_dev.this_device, map_size, &dma_handle, GFP_KERNEL);
+  if(!dma_virtaddr){
+    return -ENOMEM;
+  }
+  vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+
+  if (remap_pfn_range(vma, vma->vm_start, virt_to_phys(dma_virtaddr)>>PAGE_SHIFT,
+                map_size,
+                vma->vm_page_prot))
+        return -ENOMEM;
+
+  vma->vm_ops = &dummymap_fops;
+  vm_open(vma);
+  return 0;
 }
 
 static int __init dummymap_init(void) {
